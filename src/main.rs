@@ -30,12 +30,17 @@ fn main() {
     let desktop: String = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or("Unknown".to_string());
     println!("{}", desktop);
 
-    let (days, hours, minutes, seconds) = find_uptime();
-
+    let (days, hours, minutes, seconds) = get_uptime();
     println!("{} Day(s) {} Hour(s) {} Minute(s) {} Second(s)", days, hours, minutes, seconds);
+
+    let cpu = get_cpu();
+    println!("{}",cpu);
+
+    let (total_mem, total_used, percent_used) = get_memory();
+    println!("{} GiB / {} GiB ({}%)", total_used, total_mem, percent_used);
 }
 
-fn find_uptime() -> (String, String, String, String) {
+fn get_uptime() -> (String, String, String, String) {
     let uptime_content: String = std::fs::read_to_string("/proc/uptime").unwrap_or("Unknown".to_string());
     let mut uptime_parts = uptime_content.split_whitespace();
     let uptime_string_seconds = uptime_parts.next().unwrap_or("0");
@@ -57,4 +62,53 @@ fn find_uptime() -> (String, String, String, String) {
     let seconds: f32 = uptime_seconds;
 
     return (days.to_string(), hours.to_string(), minutes.to_string(), seconds.to_string());
+}
+
+fn get_cpu() -> String {
+    let cpuinfo_content = std::fs::read_to_string("/proc/cpuinfo").unwrap_or("Unknown".to_string());
+    let mut cpu = "Unknown".to_string();
+
+    for line in cpuinfo_content.lines() {
+        if line.starts_with("model name") {
+            if let Some((_, value)) = line.split_once(':') {
+              cpu = value.trim().to_string();
+            }
+        }
+    }
+
+    cpu
+}
+
+fn get_memory() -> (String, String, String) {
+    let mut total_mem: f32 = 0.0;
+    let mut available_mem: f32 = 0.0;
+
+    let meminfo_content = std::fs::read_to_string("/proc/meminfo").unwrap_or("Unknown".to_string());
+    for line in meminfo_content.lines(){
+        if line.starts_with("MemTotal") {
+            if let Some((_, value)) = line.split_once(':') {
+                let trimmed_value = value.trim();
+
+                let mut value_parts = trimmed_value.split_whitespace();
+                total_mem = value_parts.next().unwrap_or("0.0").parse::<f32>().unwrap_or(0.0);
+            }
+        }
+
+        if line.starts_with("MemAvailable") {
+            if let Some((_, value)) = line.split_once(':') {
+                let trimmed_value = value.trim();
+
+                let mut value_parts = trimmed_value.split_whitespace();
+                available_mem = value_parts.next().unwrap_or("0.0").parse::<f32>().unwrap_or(0.0);
+            }
+        }
+    }
+
+    let gigabyte_kilabytes: f32 = 1024.0 * 1024.0;
+    total_mem = total_mem / gigabyte_kilabytes;
+    let total_used: f32 = total_mem - (available_mem / gigabyte_kilabytes);
+
+    let percent_used: f32 = (total_used / total_mem) * 100.0;
+
+    return (total_mem.to_string(), total_used.to_string(), percent_used.to_string());
 }
