@@ -29,10 +29,10 @@ fn main() {
 ⡝⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀⢱⢕  | {shell}
 ⡝⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇⡀⢕  | {terminal}
 ⡝⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰⢗⢄  | {desktop}
-⠁⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕⢕⢕  | {days} Day(s) {hours} Hour(s) {minutes} Minute(s) {seconds} Second(s)
+⠁⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕⢕⢕  | {days:} Day(s) {hours} Hour(s) {minutes} Minute(s) {seconds:.2} Second(s)
 ⡀⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵⣵⣿  | {cpu}
-⡻⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  | {total_used} GiB / {total_mem} GiB ({percent_used}%)
-⣷⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿⣿⠟  | {used_bytes} TiB / {total_bytes} TiB ({total_bytes_percent}%)
+⡻⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  | {total_used:.5} GiB / {total_mem:.5} GiB ({percent_used:.5}%)
+⣷⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿⣿⠟  | {used_bytes:.4} TiB / {total_bytes:.4} TiB ({total_bytes_percent:.5}%)
 ⡕⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿⠁⣠  |
 ⡝⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀⣈⠙  |
 ⡝⡵⡕⡀⠑⠳⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠛⢉⡠⡲⡫⡪⡪⡣  |
@@ -143,10 +143,10 @@ fn get_storage() -> (String, String, String) {
         let free_bytes: f64 = (stats.blocks_free() as f64 ) * (stats.block_size() as f64);
         let mut used_bytes: f64 = total_bytes - free_bytes;
 
-        total_bytes = total_bytes / BYTES.powf(3.0);
+        total_bytes = total_bytes / BYTES.powf(4.0);
         used_bytes = used_bytes / BYTES.powf(4.0);
 
-        let used_bytes_percent = (used_bytes as f64 / total_bytes as f64) * 100000.0;
+        let used_bytes_percent = (used_bytes as f64 / total_bytes as f64) * 100.0;
 
         return (used_bytes.to_string(), total_bytes.to_string(), used_bytes_percent.to_string());
     } else {
