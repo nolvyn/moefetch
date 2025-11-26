@@ -1,8 +1,53 @@
 fn main() {
     let username: String = std::env::var("USER").expect("Unknown");
-    let hostname: String = std::fs::read_to_string("/proc/sys/kernel/hostname").expect("Unknown");
-    println!("{}@{}", username, hostname.trim());
+    let hostname: String = std::fs::read_to_string("/proc/sys/kernel/hostname").expect("Unknown").trim().to_string();
 
+    let os = get_os();
+
+    let version = get_version();
+
+    let shell: String = std::env::var("SHELL").unwrap_or("Unknown".to_string());
+
+    let terminal: String = std::env::var("TERM_PROGRAM").unwrap_or("Unknown".to_string());
+
+    let desktop: String = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or("Unknown".to_string());
+
+    let (days, hours, minutes, seconds) = get_uptime();
+
+    let cpu = get_cpu();
+
+    let (total_mem, total_used, percent_used) = get_memory();
+
+    let (used_bytes, total_bytes, total_bytes_percent) = get_storage();
+
+
+    println!("
+⣇⣿⠘⣿⣿⣿⡿⡿⣟⣟⢟⢟⢝⠵⡝⣿⡿⢂⣼⣿⣷⣌⠩⡫⡻⣝⠹⢿⣿⣷  | {username}@{hostname}
+⡆⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑⢝⣇  | 
+⡆⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐⢕⢽  | {os}
+⡗⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐⣕⢕  | Linux {version}
+⡝⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀⢱⢕  | {shell}
+⡝⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇⡀⢕  | {terminal}
+⡝⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰⢗⢄  | {desktop}
+⠁⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕⢕⢕  | {days} Day(s) {hours} Hour(s) {minutes} Minute(s) {seconds} Second(s)
+⡀⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵⣵⣿  | {cpu}
+⡻⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  | {total_used} GiB / {total_mem} GiB ({percent_used}%)
+⣷⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿⣿⠟  | {used_bytes} TiB / {total_bytes} TiB ({total_bytes_percent}%)
+⡕⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿⠁⣠  |
+⡝⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀⣈⠙  |
+⡝⡵⡕⡀⠑⠳⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠛⢉⡠⡲⡫⡪⡪⡣  |
+");
+}
+
+fn get_version() -> String {
+    let version_content: String = std::fs::read_to_string("/proc/version").expect("Unknown");
+    let mut version_parts = version_content.split_whitespace();
+    let version = version_parts.nth(2).unwrap_or("Unknown").to_string();
+
+    version
+}
+
+fn get_os() -> String {
     let os_release_content: String = std::fs::read_to_string("/etc/os-release").expect("Unknown");
     let mut os= "Unknown".to_string();
     for line in os_release_content.lines() {
@@ -14,30 +59,7 @@ fn main() {
           }
         }
     }
-    println!("{}", os);
-
-    let version_content: String = std::fs::read_to_string("/proc/version").expect("Unknown");
-    let mut version_parts = version_content.split_whitespace();
-    let version: &str = version_parts.nth(2).unwrap_or("Unknown");
-    println!("Linux {}", version);
-
-    let shell: String = std::env::var("SHELL").unwrap_or("Unknown".to_string());
-    println!("{}", shell);
-
-    let terminal: String = std::env::var("TERM_PROGRAM").unwrap_or("Unknown".to_string());
-    println!("{}", terminal);
-
-    let desktop: String = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or("Unknown".to_string());
-    println!("{}", desktop);
-
-    let (days, hours, minutes, seconds) = get_uptime();
-    println!("{} Day(s) {} Hour(s) {} Minute(s) {} Second(s)", days, hours, minutes, seconds);
-
-    let cpu = get_cpu();
-    println!("{}",cpu);
-
-    let (total_mem, total_used, percent_used) = get_memory();
-    println!("{} GiB / {} GiB ({}%)", total_used, total_mem, percent_used);
+    os
 }
 
 fn get_uptime() -> (String, String, String, String) {
@@ -111,4 +133,23 @@ fn get_memory() -> (String, String, String) {
     let percent_used: f32 = (total_used / total_mem) * 100.0;
 
     return (total_mem.to_string(), total_used.to_string(), percent_used.to_string());
+}
+
+fn get_storage() -> (String, String, String) {
+    const BYTES: f64 = 1024.0;
+
+    if let Ok(stats) = nix::sys::statvfs::statvfs("/") {
+        let mut total_bytes: f64 = (stats.blocks() as f64 ) * (stats.block_size() as f64);
+        let free_bytes: f64 = (stats.blocks_free() as f64 ) * (stats.block_size() as f64);
+        let mut used_bytes: f64 = total_bytes - free_bytes;
+
+        total_bytes = total_bytes / BYTES.powf(3.0);
+        used_bytes = used_bytes / BYTES.powf(4.0);
+
+        let used_bytes_percent = (used_bytes as f64 / total_bytes as f64) * 100000.0;
+
+        return (used_bytes.to_string(), total_bytes.to_string(), used_bytes_percent.to_string());
+    } else {
+        return ("0".to_string(), "0".to_string(), "0".to_string());
+    }
 }
